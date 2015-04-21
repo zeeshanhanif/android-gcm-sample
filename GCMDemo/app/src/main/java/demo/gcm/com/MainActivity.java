@@ -30,7 +30,7 @@ public class MainActivity extends ActionBarActivity {
     public static final String EXTRA_MESSAGE = "message";
     public static final String PROPERTY_REG_ID = "registration_id";
     private static final String PROPERTY_APP_VERSION = "appVersion";
-    String SENDER_ID = "Your-Sender-ID";
+    String SENDER_ID = "969456330582";
 
     GoogleCloudMessaging gcm;
     AtomicInteger msgId = new AtomicInteger();
@@ -51,6 +51,9 @@ public class MainActivity extends ActionBarActivity {
 
             if(regid.isEmpty()){
                 registerInBackground();
+            }
+            else {
+                display.append("Already Registered" + "\n");
             }
         }
         else {
@@ -122,7 +125,7 @@ public class MainActivity extends ActionBarActivity {
                     msg = "Device registered, registration ID=" + regid;
                     sendRegistrationIdToBackend();
 
-                    //storeRegistrationId(context, regid);
+                    storeRegistrationId(context, regid);
                 }
                 catch (IOException e){
                     msg = "Error :" + e.getMessage();
