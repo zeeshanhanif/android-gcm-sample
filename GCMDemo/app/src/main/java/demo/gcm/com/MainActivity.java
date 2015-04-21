@@ -11,12 +11,29 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.gcm.GoogleCloudMessaging;
 
+import org.apache.http.HttpConnection;
+import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.util.EntityUtils;
+
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 
@@ -53,7 +70,7 @@ public class MainActivity extends ActionBarActivity {
                 registerInBackground();
             }
             else {
-                display.append("Already Registered" + "\n");
+                display.append(" Already Registered" + "\n");
             }
         }
         else {
@@ -123,7 +140,7 @@ public class MainActivity extends ActionBarActivity {
                     }
                     regid = gcm.register(SENDER_ID);
                     msg = "Device registered, registration ID=" + regid;
-                    sendRegistrationIdToBackend();
+                    sendRegistrationIdToBackend(regid);
 
                     storeRegistrationId(context, regid);
                 }
@@ -140,8 +157,11 @@ public class MainActivity extends ActionBarActivity {
         }.execute(null,null,null);
     }
 
-    private void sendRegistrationIdToBackend() {
+    private void sendRegistrationIdToBackend(String deviceId) {
         // Your implementation here.
+        HttpAsyncTask myPostTask = new HttpAsyncTask();
+        myPostTask.execute(deviceId);
+
     }
 
     private void storeRegistrationId(Context context, String regId) {
@@ -149,10 +169,47 @@ public class MainActivity extends ActionBarActivity {
         int appVersion = getAppVersion(context);
         Log.i(TAG, "Saving regId on app version " + appVersion);
         SharedPreferences.Editor editor = prefs.edit();
+        //editor.clear();
         editor.putString(PROPERTY_REG_ID, regId);
         editor.putInt(PROPERTY_APP_VERSION, appVersion);
         editor.commit();
     }
+
+    public String postData(String id) throws IOException {
+        HttpClient client = new DefaultHttpClient();
+        //HttpPost post = new HttpPost("http://10.0.3.2:3000/users/mypost");
+        HttpPost post = new HttpPost("http://10.105.19.109:3000/gcm/register");
+
+        List<NameValuePair> pairs = new ArrayList<NameValuePair>();
+        pairs.add(new BasicNameValuePair("registrationId", id));
+        //pairs.add(new BasicNameValuePair("key2", "value2"));
+        post.setEntity(new UrlEncodedFormEntity(pairs));
+
+        HttpResponse response = client.execute(post);
+
+        String result = EntityUtils.toString(response.getEntity());
+        Log.d(TAG,"After Post request Data = "+ result );
+        return result;
+    }
+
+    private class HttpAsyncTask extends AsyncTask<String,Void,String>  {
+        @Override
+        protected String doInBackground(String... ids) {
+            try {
+                return postData(ids[0]);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
+        // onPostExecute displays the results of the AsyncTask.
+        @Override
+        protected void onPostExecute(String result) {
+            Toast.makeText(getBaseContext(), "Received! = "+result, Toast.LENGTH_LONG).show();
+            //etResponse.setText(result);
+        }
+    }
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
