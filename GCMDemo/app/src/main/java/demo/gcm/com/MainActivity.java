@@ -64,7 +64,7 @@ public class MainActivity extends ActionBarActivity {
 
         if(checkPlayService()){
             gcm = GoogleCloudMessaging.getInstance(this);
-            regid = getRegistrationId(context);
+            regid = "";//getRegistrationId(context);
 
             if(regid.isEmpty()){
                 registerInBackground();
@@ -178,7 +178,7 @@ public class MainActivity extends ActionBarActivity {
     public String postData(String id) throws IOException {
         HttpClient client = new DefaultHttpClient();
         //HttpPost post = new HttpPost("http://10.0.3.2:3000/users/mypost");
-        HttpPost post = new HttpPost("http://10.105.19.109:3000/gcm/register");
+        HttpPost post = new HttpPost("http://192.168.1.27:3000/gcm/register");
 
         List<NameValuePair> pairs = new ArrayList<NameValuePair>();
         pairs.add(new BasicNameValuePair("registrationId", id));
